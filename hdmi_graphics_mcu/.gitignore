@@ -1,0 +1,6 @@
+temp/
+impl/gwsynthesis
+impl/pnr/*
+!impl/pnr/cmd.do
+!impl/pnr/device.cfg
+**_tmp.v
