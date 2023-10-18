@@ -85,6 +85,18 @@ int getCell(int x, int y) {
 	return (data & mask) ? 1 : 0;
 }
 
+const uint8_t bitCnt[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
+int countCells(int x, int y) {
+	int cx = x >> 5;
+	int sm = 30 - (x & 0x1f);
+	int cnt = 0;
+	for (int cy = y-1; cy <= y+1; cy++) {
+		uint32_t data = (sa[cy][cx]) >> sm;
+		cnt += bitCnt[data & 0x07];
+	}
+	return cnt;
+}
+
 void setCell(int x, int y, int state) {
 	uint32_t mask = 0x80000000 >> (x & 0x1f);
 	if (state) {
@@ -121,17 +133,22 @@ int cellsStep(int lifeId) {
 	for (int y=0; y<SH; y++) {
 		for (int x=0; x<SW; x++) {
 			int c = getCell(x,y);
-
-			int n = 0;
-			n +=  getCell(x-1, y-1);
-			n +=  getCell(x, y-1);
-			n +=  getCell(x+1, y-1);
-			n +=  getCell(x-1, y);
-			n +=  getCell(x+1, y);
-			n +=  getCell(x-1, y+1);
-			n +=  getCell(x, y+1);
-			n +=  getCell(x+1, y+1);
 			
+			int xc = x & 0x1f;
+			int n = 0;
+			if (xc != 0 && xc != 31 && y !=0 && y != SH-1) {
+				n = countCells(x,y) - c;
+			} else {
+				n += getCell(x-1, y-1);
+				n += getCell(x, y-1);
+				n += getCell(x+1, y-1);
+				n += getCell(x-1, y);
+				n += getCell(x+1, y);
+				n += getCell(x-1, y+1);
+				n += getCell(x, y+1);
+				n += getCell(x+1, y+1);
+			}
+
 			uint16_t mask = 1 << n;
 			if (c) {
 				// Survive

@@ -95,7 +95,7 @@ int main(void)
 	printTime();
 
   // Random chars
-	for (int n=0; n<100; n++) {
+	for (int n=0; n<1000; n++) {
 		initTime();
 		for (int i=0; i<100; i++) {
 			char c = 0x20 + rand() % (0x80 - 0x20);
@@ -108,7 +108,7 @@ int main(void)
 	}
 	
   // Random lines
-	for (int n=0; n<100; n++) {
+	for (int n=0; n<50; n++) {
 		initTime();
 		for (int i=0; i<100; i++) {
 			int xs = rand() % SCREEN_W;
