@@ -11,7 +11,9 @@ module TOP
 	output	[5:0]	LCD_G,
 	output	[4:0]	LCD_B,
 
-    input  wire       uart_rx
+    input           uart_rx,
+    inout  wire     one_wire,
+	output	    	one_gnd
 );
 
     Gowin_rPLL Gowin_rPLL_9Mhz(
@@ -120,16 +122,32 @@ module TOP
         date_label[2] = "t";
         date_label[3] = "e";
         date_label[4] = ":";
-    end  
+    end
 
-    wire [7:0] date_read = y[7:4] == 1 ? date_label[x[6:4]] : gdate[x[6:4]] + "0";
+
+    wire [15:0] t_buf;
+    reg [7:0] temp_label [0:4];
+    initial begin
+        temp_label[0] = "T";
+        temp_label[1] = "e";
+        temp_label[2] = "m";
+        temp_label[3] = "p";
+        temp_label[4] = ":";
+    end
+
+    wire [3:0] temp_bcd = (x[5:4] == 0 ? t_buf[11:8] : x[5:4] == 1 ? t_buf[7:4] : t_buf[3:0]);
+    wire [7:0] temp_read = y[4] == 0 ? temp_label[x[6:4]] : x[6:4] >=4 ? " " : x[6:4] == 2 ? "." : (temp_bcd <= 9) ? temp_bcd + "0" : temp_bcd + ("A" - 10);
+
+    wire [7:0] date_read = y[4] == 0 ? date_label[x[6:4]] : !time_valid ? " " : gdate[x[6:4]] + "0";
     wire dre = (vga_re && x[3:0] == 15);
+
+    wire [7:0] info_read = y[7:5] == 0 ? temp_read : date_read;
 
     font font_date
     (
         .clk(LCD_CLK),
         .line(y[3:1]),
-        .char(date_read[6:0]),
+        .char(info_read[6:0]),
         .re(dre),
         .data_out(date_out)
     );
@@ -158,7 +176,6 @@ module TOP
     reg time_valid = 1'b0;
     wire [15:0] clock_color = time_valid ? 16'b0000011111100000 : 16'b1111100000000000;
 
-
     function [3:0] trunc_8_to_4(input [7:0] val);
       trunc_8_to_4 = val[3:0];
     endfunction
@@ -170,8 +187,8 @@ module TOP
             ar <= ar_read;
         end
 
-        // Date rendering
-        if (time_valid && x >= 16 && x < 16 + 16*6 && y >=16 && y < 48) begin
+        // Info rendering
+        if (x >= 16 && x < 16 + 16*6 && y >=0 && y < 64) begin
             vga_datain <= date_color;
         end else
 
@@ -290,6 +307,15 @@ UART_RX UART_RX_instance(
     .i_RX_Serial(uart_rx),
     .o_RX_Byte(w_data),
     .o_RX_DV(rxDone)
+);
+
+assign one_gnd = 1'b0;
+
+ds18b20_drive ds18b20_u0(
+  .clk(XTAL_IN),
+  .rst_n(Reset_Button),
+  .one_wire(one_wire),
+  .temperature(t_buf)
 );
 
 

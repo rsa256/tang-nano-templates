@@ -8,6 +8,7 @@
         <File path="src/TOP.v" type="file.verilog" enable="1"/>
         <File path="src/VGA_timing.v" type="file.verilog" enable="1"/>
         <File path="src/att_dpb/att_dpb.v" type="file.verilog" enable="1"/>
+        <File path="src/ds18b20/ds18b20.v" type="file.verilog" enable="1"/>
         <File path="src/font.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_dpb/gowin_dpb.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_rpll/gowin_rpll.v" type="file.verilog" enable="1"/>
