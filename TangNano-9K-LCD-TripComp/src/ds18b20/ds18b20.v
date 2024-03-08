@@ -401,10 +401,10 @@ end
 
 assign one_wire = one_wire_buf;         
 
-wire [15:0] t_buf = temperature_buf & 16'h07FF;
+wire [15:0] t_buf = (temperature_buf[12] ? 0 - temperature_buf : temperature_buf) & 16'h07FF;
 
-function [3:0] trunc_32_to_4(input [31:0] val);
-  trunc_32_to_4 = val[3:0];
+function [3:0] trunc_8_to_4(input [7:0] val);
+  trunc_8_to_4 = val[3:0];
 endfunction
 
 function [3:0] trunc_6_to_4(input [5:0] val);
@@ -413,8 +413,8 @@ endfunction
 
 
 assign temperature[3:0]   = trunc_6_to_4((t_buf[3:0] * 10) >> 4);
-assign temperature[7:4]   = trunc_32_to_4((((t_buf[7:4] * 10) >> 4) >= 4'd10) ? (((t_buf[7:4] * 10) >> 4) - 'd10) : ((t_buf[7:4] * 10) >> 4));
-assign temperature[11:8]  = trunc_6_to_4((((t_buf[7:4] * 10) >> 4) >= 4'd10) ? (((t_buf[11:8] * 10) >> 4) + 'd1) + 'd2 : ((t_buf[11:8] * 10) >> 4) + 'd2);
+assign temperature[7:4]   = t_buf[11:4] % 10;
+assign temperature[11:8]  = trunc_8_to_4(t_buf[11:4] / 10);
 assign temperature[15:12] = temperature_buf[12] ? 1 : 0;
 
 endmodule

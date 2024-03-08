@@ -121,7 +121,7 @@ module TOP
         date_label[1] = "a";
         date_label[2] = "t";
         date_label[3] = "e";
-        date_label[4] = ":";
+        date_label[4] = " ";
     end
 
 
@@ -132,11 +132,11 @@ module TOP
         temp_label[1] = "e";
         temp_label[2] = "m";
         temp_label[3] = "p";
-        temp_label[4] = ":";
+        temp_label[4] = " ";
     end
 
     wire [3:0] temp_bcd = (x[5:4] == 0 ? t_buf[11:8] : x[5:4] == 1 ? t_buf[7:4] : t_buf[3:0]);
-    wire [7:0] temp_read = y[4] == 0 ? temp_label[x[6:4]] : x[6:4] >=4 ? " " : x[6:4] == 2 ? "." : (temp_bcd <= 9) ? temp_bcd + "0" : temp_bcd + ("A" - 10);
+    wire [7:0] temp_read = y[4] == 0 ? temp_label[x[6:4]] : x[6:4] >=4 ? " " : x[6:4] == 2 ? "." : (x[6:4] == 0 && t_buf[12]) ? "-" : (temp_bcd <= 9) ? temp_bcd + "0" : temp_bcd + ("A" - 10);
 
     wire [7:0] date_read = y[4] == 0 ? date_label[x[6:4]] : !time_valid ? " " : gdate[x[6:4]] + "0";
     wire dre = (vga_re && x[3:0] == 15);
@@ -188,7 +188,7 @@ module TOP
         end
 
         // Info rendering
-        if (x >= 16 && x < 16 + 16*6 && y >=0 && y < 64) begin
+        if (x >= 16 && ((y[5:4] == 3 && x < ZX_X_START + 40) || x < ZX_X_START + 16) && y >=0 && y < 64) begin
             vga_datain <= date_color;
         end else
 
@@ -197,13 +197,14 @@ module TOP
             vga_datain <= sand_out ? 16'b1111111111100000 : (segment_out ? clock_color : 16'h0000);
         end else
         
-        // Info Rendering
+        // Terminal Rendering
         if (x >= ZX_X_START + 16 && x < ZX_X_END + 16 && y >= ZX_Y_START && y < ZX_Y_END + 4*8) begin
             vga_datain <= info_color;
         end else
-        if (x == 0 || x == 340 || y == 0 || y == 199) begin
-            vga_datain <= 16'hffff;
-        end else
+        // Border Frame
+        //if (x == 0 || x == 340 || y == 0 || y == 199) begin
+        //   vga_datain <= 16'hffff;
+        //end else
             
         // Border rendering
         vga_datain <= border_color;
